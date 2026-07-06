@@ -11,6 +11,11 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -197,4 +202,59 @@ public class FileLoaderService {
         return Long.valueOf(value.trim());
     }
 
+
+    private boolean moveToProcessedFolder(File file) {
+
+        try {
+
+            Path sourcePath = file.toPath();
+            Path destinationPath = Paths.get(processedFolder, file.getName());
+
+            Files.createDirectories(destinationPath.getParent());
+
+            Files.move(
+                    sourcePath,
+                    destinationPath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            return true;
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean moveToFailedFolder(File file) {
+
+        try {
+
+            Path sourcePath = file.toPath();
+            Path destinationPath = Paths.get(failedFolder, file.getName());
+
+            // Create failed directory if it doesn't exist
+            Files.createDirectories(destinationPath.getParent());
+
+            // Move file
+            Files.move(
+                    sourcePath,
+                    destinationPath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            System.out.println("File moved successfully to failed folder: " + file.getName());
+
+            return true;
+
+        } catch (IOException e) {
+
+            System.err.println("Error while moving file to failed folder: " + file.getName());
+
+            e.printStackTrace();
+
+            return false;
+        }
+    }
 }
